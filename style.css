@@ -1,117 +1,122 @@
-/* 全站基本設定 */
-body {
-  font-family: "Microsoft JhengHei", "Helvetica Neue", sans-serif;
-  margin: 0;
-  padding: 0;
-  background-color: #f6f6f6;
-  color: #333;
+// 清理字串用
+function clean(value) {
+  if (!value) return "";
+  return value.toString()
+    .trim()
+    .replace(/^"+|"+$/g, "")
+    .replace(/\r?\n/g, " ")
+    .replace(/\s+/g, " ");
 }
 
-/* 頁首區塊 */
-header {
-  background-color: #212121;
-  color: white;
-  padding: 2em 1em;
-  text-align: center;
+// 根據欄位名模糊比對
+function findKey(obj, keyword) {
+  const keys = Object.keys(obj);
+  for (let key of keys) {
+    if (key.replace(/\s/g, '').includes(keyword.replace(/\s/g, ''))) {
+      return key;
+    }
+  }
+  return null;
 }
 
-header h1 {
-  margin-bottom: 0.3em;
+// 轉換時間格式
+function parseTimeText(str) {
+  if (!str) return [];
+  const raw = str.replace(/^"+|"+$/g, "").trim();
+  if (!raw) return [];
+
+  const allTimes = ["清晨", "上午", "中午", "下午", "晚上", "半夜"];
+  let parts = raw.split(/[,、\s]+/).filter(p => p && p !== "，");
+  const unique = [...new Set(parts)];
+
+  if (unique.includes("不玩")) return ["不玩"];
+  if (unique.includes("全天") || allTimes.every(t => unique.includes(t))) return ["全天"];
+  if (allTimes.every(t => unique.includes(t))) return ["全天"];
+  return unique;
 }
 
-header p {
-  margin-top: 0;
-  font-size: 1.1em;
+// 顯示隊友資料
+function displayTeammates(data) {
+  const container = document.getElementById("teammate-list");
+  container.innerHTML = "";
+
+  if (!data || data.length === 0) {
+    container.innerHTML = "<p>目前沒有推薦的隊友。</p>";
+    return;
+  }
+
+  const weekDays = ["一", "二", "三", "四", "五", "六", "日"];
+
+  data.forEach(item => {
+    const idKey = findKey(item, "隊友ID") || findKey(item, "隊友 ID");
+    const uidKey = findKey(item, "UID");
+    const idVal = idKey ? clean(item[idKey]) : "";
+    const uidVal = uidKey ? clean(item[uidKey]) : "";
+    const displayID = idVal && uidVal
+      ? `${idVal}（UID: ${uidVal}）`
+      : idVal
+        ? idVal
+        : uidVal
+          ? `UID: ${uidVal}`
+          : "未提供";
+
+    const roleKey = findKey(item, "擅長角色");
+    const techKey = findKey(item, "技術類型");
+    const noteKey = findKey(item, "備註") || findKey(item, "想補充");
+    const satisfactionKey = findKey(item, "滿意度");
+    const likeKey = findKey(item, "喜愛度");
+
+    // 取得數字型態的滿意度與喜愛度（若無法轉為數字則預設0）
+    const satisfaction = satisfactionKey ? Number(clean(item[satisfactionKey])) : 0;
+    const like = likeKey ? Number(clean(item[likeKey])) : 0;
+
+    // 計算綜合分（平均），如果兩個都是0就不顯示
+    let averageScore = null;
+    if (satisfaction > 0 || like > 0) {
+      averageScore = ((satisfaction + like) / 2).toFixed(2);
+    }
+
+    let timesText = "";
+    for (let i = 0; i < 7; i++) {
+      const dayKey = findKey(item, `星期${weekDays[i]}`);
+      const raw = dayKey ? clean(item[dayKey]) : "";
+      const parsed = parseTimeText(raw);
+      if (parsed.length === 1) {
+        timesText += `　${weekDays[i]}：${parsed[0]}<br>`;
+      } else if (parsed.length > 1) {
+        timesText += `　${weekDays[i]}：${parsed.join(", ")}<br>`;
+      } else {
+        timesText += `　${weekDays[i]}：無資料<br>`;
+      }
+    }
+
+    const card = document.createElement("div");
+    card.className = "teammate-card";
+    card.innerHTML = `
+      <h3>🆔 ${displayID}</h3>
+      <p>🎯 擅長角色：${roleKey ? clean(item[roleKey]) : "無"}</p>
+      <p>📊 技術評價：${techKey ? clean(item[techKey]) : "無"}</p>
+      <p>🕐 出沒時間：<br>${timesText}</p>
+      <p>💬 備註：${noteKey ? clean(item[noteKey]) : "無"}</p>
+      <p>⭐ 滿意度：${satisfactionKey ? clean(item[satisfactionKey]) : "無"}</p>
+      <p>💖 喜愛度：${likeKey ? clean(item[likeKey]) : "無"}</p>
+      ${averageScore !== null ? `<p>🌟 綜合分：${averageScore}</p>` : ""}
+    `;
+    container.appendChild(card);
+  });
 }
 
-/* 區塊標題 */
-h2 {
-  text-align: center;
-  margin-top: 1.5em;
-  font-size: 1.4em;
-  color: #333;
-}
+// 資料來源，Google 試算表 CSV 連結
+const csvUrl = "https://docs.google.com/spreadsheets/d/e/2PACX-1vR4C-YNnRgX3N71kURyPYn0K6Gt34uLFPm5DjiWzHf9DfKDzE3LIoEm2D8SqZoyrXycU4cIDK7qlgLd/pub?output=csv";
 
-/* 主內容區域 */
-main {
-  max-width: 1000px;
-  margin: 0 auto;
-  padding: 1em;
-}
-
-/* 最新消息、社群連結、推薦表單區塊 */
-#latest-news,
-#social-links,
-#feedback {
-  background-color: #fff;
-  padding: 1em;
-  margin: 1em auto;
-  max-width: 800px;
-  border-radius: 8px;
-  box-shadow: 0 2px 5px rgba(0,0,0,0.05);
-  text-align: center;
-}
-
-/* 按鈕樣式 */
-.btn {
-  display: inline-block;
-  margin: 0.5em auto;
-  padding: 0.6em 1.5em;
-  font-size: 1em;
-  color: white;
-  background-color: #2e7d32;
-  border: none;
-  border-radius: 999px;
-  text-decoration: none;
-  cursor: pointer;
-  transition: background-color 0.2s ease;
-}
-
-.btn:hover {
-  background-color: #1b5e20;
-}
-
-/* 好友卡片樣式 */
-.teammate-card {
-  background-color: #fff;
-  border-radius: 10px;
-  box-shadow: 0 2px 6px rgba(0,0,0,0.1);
-  padding: 1em 1.2em;
-  margin: 1em auto;
-  max-width: 600px;
-  transition: transform 0.2s;
-}
-
-.teammate-card:hover {
-  transform: scale(1.02);
-}
-
-/* 卡片內文字排版 */
-.teammate-card h3 {
-  margin: 0 0 0.5em;
-  font-size: 1.2em;
-}
-
-.teammate-card div {
-  margin: 0;
-  padding: 0;
-  line-height: 1.4;
-  white-space: normal;
-}
-
-/* 載入文字樣式 */
-#teammate-list {
-  text-align: center;
-  font-size: 1.1em;
-  color: #666;
-}
-
-/* 頁尾樣式 */
-footer {
-  background-color: #f0f0f0;
-  text-align: center;
-  padding: 1em;
-  font-size: 0.9em;
-  color: #888;
-  margin-top: 3em;
-}
+Papa.parse(csvUrl, {
+  download: true,
+  header: true,
+  complete: function (results) {
+    displayTeammates(results.data);
+  },
+  error: function (err) {
+    document.getElementById("teammate-list").innerHTML = "<p>讀取資料失敗，請稍後再試。</p>";
+    console.error(err);
+  }
+});
