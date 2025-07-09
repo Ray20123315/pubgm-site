@@ -59,40 +59,20 @@
     #social-links a.btn:hover {
       background-color: #009900;
     }
-    /* 表單 */
-    #feedback form {
-      max-width: 500px;
-      margin: 0 auto;
-      text-align: left;
-    }
-    #feedback label {
-      display: block;
-      margin: 0.7em 0 0.3em 0;
-      font-weight: 600;
-    }
-    #feedback input[type="text"],
-    #feedback input[type="number"],
-    #feedback textarea {
-      width: 100%;
-      padding: 0.5em;
-      border: 1px solid #ccc;
-      border-radius: 6px;
-      box-sizing: border-box;
-      font-size: 1em;
-      resize: vertical;
-    }
-    #feedback button {
-      margin-top: 1em;
+    /* 推薦表單按鈕 */
+    #feedback a.btn {
+      display: inline-block;
       background-color: #2e7d32;
       color: white;
       padding: 0.7em 1.4em;
-      border: none;
       border-radius: 999px;
       font-size: 1em;
+      font-weight: 600;
+      text-decoration: none;
       cursor: pointer;
       transition: background-color 0.3s;
     }
-    #feedback button:hover {
+    #feedback a.btn:hover {
       background-color: #1b5e20;
     }
     /* 隊友卡片 */
@@ -104,6 +84,7 @@
       max-width: 600px;
       box-shadow: 0 2px 6px rgba(0,0,0,0.1);
       transition: transform 0.2s;
+      text-align: left;
     }
     .teammate-card:hover {
       transform: scale(1.02);
@@ -115,6 +96,50 @@
     .teammate-card p {
       margin: 0.25em 0;
       line-height: 1.5;
+    }
+    /* 留言區 */
+    .comment-section {
+      margin-top: 1em;
+      border-top: 1px solid #ddd;
+      padding-top: 0.8em;
+    }
+    .comment-section input[type="text"] {
+      width: 70%;
+      padding: 0.4em;
+      font-size: 1em;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+      margin-right: 0.5em;
+      box-sizing: border-box;
+    }
+    .comment-section button {
+      padding: 0.4em 1em;
+      background-color: #2e7d32;
+      border: none;
+      color: white;
+      font-weight: 600;
+      border-radius: 999px;
+      cursor: pointer;
+      transition: background-color 0.3s;
+    }
+    .comment-section button:hover {
+      background-color: #1b5e20;
+    }
+    .comment-list {
+      margin-top: 0.8em;
+      font-size: 0.9em;
+      color: #444;
+      max-height: 120px;
+      overflow-y: auto;
+      border: 1px solid #eee;
+      padding: 0.5em;
+      border-radius: 6px;
+      background: #fafafa;
+    }
+    .comment-list p {
+      margin: 0.2em 0;
+      border-bottom: 1px dotted #ccc;
+      padding-bottom: 0.2em;
     }
     #teammate-list {
       text-align: center;
@@ -148,21 +173,7 @@
 
   <section id="feedback">
     <h2>推薦好隊友表單</h2>
-    <form id="recommendForm">
-      <label for="playerID">隊友ID或暱稱</label>
-      <input type="text" id="playerID" name="playerID" required />
-
-      <label for="role">擅長角色</label>
-      <input type="text" id="role" name="role" placeholder="例如：狙擊、突擊..." />
-
-      <label for="techType">技術評價</label>
-      <input type="text" id="techType" name="techType" placeholder="例如：技術型玩家" />
-
-      <label for="notes">備註</label>
-      <textarea id="notes" name="notes" rows="3"></textarea>
-
-      <button type="submit">提交推薦</button>
-    </form>
+    <a href="https://forms.gle/ZPmGzN1NWreGyR3w6" target="_blank" rel="noopener" class="btn">點我填寫推薦表單</a>
   </section>
 
   <section id="teammate-list">
@@ -217,7 +228,7 @@
 
     const weekDays = ["一", "二", "三", "四", "五", "六", "日"];
 
-    data.forEach(item => {
+    data.forEach((item, index) => {
       const idKey = findKey(item, "隊友ID") || findKey(item, "隊友 ID") || findKey(item, "ID");
       const uidKey = findKey(item, "UID");
 
@@ -238,66 +249,4 @@
       const satisfactionKey = findKey(item, "滿意度");
       const likeKey = findKey(item, "喜愛度");
 
-      const satisfaction = satisfactionKey ? Number(clean(item[satisfactionKey])) : 0;
-      const like = likeKey ? Number(clean(item[likeKey])) : 0;
-      let averageScore = null;
-      if (satisfaction > 0 || like > 0) {
-        averageScore = ((satisfaction + like) / 2).toFixed(2);
-      }
-
-      let timesText = "";
-      for (let i = 0; i < 7; i++) {
-        const dayKey = findKey(item, `星期${weekDays[i]}`);
-        const raw = dayKey ? clean(item[dayKey]) : "";
-        const parsed = parseTimeText(raw);
-
-        if (parsed.length === 1) {
-          timesText += `　${weekDays[i]}：${parsed[0]}<br>`;
-        } else if (parsed.length > 1) {
-          timesText += `　${weekDays[i]}：${parsed.join(", ")}<br>`;
-        } else {
-          timesText += `　${weekDays[i]}：無資料<br>`;
-        }
-      }
-
-      const card = document.createElement("div");
-      card.className = "teammate-card";
-      card.innerHTML = `
-        <h3>🆔 ${displayID}</h3>
-        <p>🎯 擅長角色：${roleKey ? clean(item[roleKey]) : "無"}</p>
-        <p>📊 技術評價：${techKey ? clean(item[techKey]) : "無"}</p>
-        <p>🕐 出沒時間：<br>${timesText}</p>
-        <p>💬 備註：${noteKey ? clean(item[noteKey]) : "無"}</p>
-        <p>⭐ 滿意度：${satisfactionKey ? clean(item[satisfactionKey]) : "無"}</p>
-        <p>💖 喜愛度：${likeKey ? clean(item[likeKey]) : "無"}</p>
-        ${averageScore !== null ? `<p>🌟 綜合分：${averageScore}</p>` : ""}
-      `;
-      container.appendChild(card);
-    });
-  }
-
-  const csvUrl = "https://docs.google.com/spreadsheets/d/e/2PACX-1vR4C-YNnRgX3N71kURyPYn0K6Gt34uLFPm5DjiWzHf9DfKDzE3LIoEm2D8SqZoyrXycU4cIDK7qlgLd/pub?output=csv";
-
-  Papa.parse(csvUrl, {
-    download: true,
-    header: true,
-    complete: function(results) {
-      displayTeammates(results.data);
-    },
-    error: function(err) {
-      const container = document.getElementById("teammate-list");
-      container.innerHTML = "<h2>推薦隊友列表</h2><p>讀取資料失敗，請稍後再試。</p>";
-      console.error(err);
-    }
-  });
-
-  // 簡單表單送出事件（目前只是示範，沒有真的送到後端）
-  document.getElementById("recommendForm").addEventListener("submit", function(e) {
-    e.preventDefault();
-    alert("感謝您的推薦！表單尚未串接後端，暫時無法送出。");
-    this.reset();
-  });
-</script>
-
-</body>
-</html>
+      const satisfaction = satisfactionKey ? Number(clean(item[satisfactionKey])) : 0
