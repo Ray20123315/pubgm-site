@@ -4,8 +4,6 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>PUBGM 好友推薦及 LINE 社群</title>
-  <link rel="stylesheet" href="style.css" />
-  <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
   <style>
     body {
       font-family: "Noto Sans TC", "Microsoft JhengHei", sans-serif;
@@ -52,6 +50,7 @@
       line-height: 1.5em;
     }
   </style>
+  <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
 </head>
 <body>
   <header>
@@ -131,30 +130,20 @@
       });
     }
 
-    Papa.parse = window.Papa && window.Papa.parse;
-    if (!Papa.parse) {
-      document.getElementById("teammate-list").innerHTML = "<p>載入 PapaParse 失敗，請確認網路連線。</p>";
-    } else {
-      fetch(sheetURL)
-        .then(res => res.text())
-        .then(csvText => {
-          Papa.parse(csvText, {
-            header: true,
-            skipEmptyLines: true,
-            complete: function(results) {
-              displayTeammates(results.data);
-            },
-            error: function(err) {
-              console.error(err);
-              document.getElementById("teammate-list").innerHTML = "<p>資料解析錯誤，請稍後再試。</p>";
-            }
-          });
-        })
-        .catch(err => {
-          console.error(err);
-          document.getElementById("teammate-list").innerHTML = "<p>載入資料失敗，請稍後再試。</p>";
-        });
-    }
+    Papa.parse(sheetURL, {
+      download: true,
+      header: true,
+      skipEmptyLines: true,
+      complete: function(results) {
+        console.log("欄位名稱:", Object.keys(results.data[0]));
+        console.log("第一筆資料:", results.data[0]);
+        displayTeammates(results.data);
+      },
+      error: function(err) {
+        console.error(err);
+        document.getElementById("teammate-list").innerHTML = "<p>資料解析錯誤，請稍後再試。</p>";
+      }
+    });
   </script>
 </body>
 </html>
