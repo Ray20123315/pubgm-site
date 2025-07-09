@@ -2,13 +2,100 @@
 <html lang="zh-Hant">
 <head>
   <meta charset="UTF-8" />
-  <title>隊友列表與綜合分顯示</title>
+  <title>PUBGM 好隊友推薦牆</title>
   <style>
     body {
       font-family: "Microsoft JhengHei", "Helvetica Neue", sans-serif;
       margin: 0; padding: 0;
       background-color: #f6f6f6; color: #333;
     }
+    header {
+      background-color: #212121;
+      color: white;
+      padding: 2em 1em;
+      text-align: center;
+    }
+    header h1 {
+      margin: 0 0 0.3em 0;
+      font-size: 2em;
+    }
+    header p {
+      margin: 0;
+      font-size: 1.1em;
+      opacity: 0.8;
+    }
+    main {
+      max-width: 1000px;
+      margin: 2em auto;
+      padding: 0 1em;
+    }
+    section {
+      background: white;
+      border-radius: 8px;
+      padding: 1.2em 1.5em;
+      margin-bottom: 2em;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+    }
+    h2 {
+      margin-top: 0;
+      font-weight: 600;
+      text-align: center;
+      color: #2e7d32;
+      margin-bottom: 1em;
+    }
+    /* LINE 社群按鈕 */
+    #social-links a.btn {
+      display: inline-block;
+      background-color: #00c300;
+      color: white;
+      padding: 0.6em 1.6em;
+      border-radius: 999px;
+      font-weight: 600;
+      text-decoration: none;
+      transition: background-color 0.3s;
+      margin: 0 0.5em;
+      cursor: pointer;
+    }
+    #social-links a.btn:hover {
+      background-color: #009900;
+    }
+    /* 表單 */
+    #feedback form {
+      max-width: 500px;
+      margin: 0 auto;
+      text-align: left;
+    }
+    #feedback label {
+      display: block;
+      margin: 0.7em 0 0.3em 0;
+      font-weight: 600;
+    }
+    #feedback input[type="text"],
+    #feedback input[type="number"],
+    #feedback textarea {
+      width: 100%;
+      padding: 0.5em;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+      box-sizing: border-box;
+      font-size: 1em;
+      resize: vertical;
+    }
+    #feedback button {
+      margin-top: 1em;
+      background-color: #2e7d32;
+      color: white;
+      padding: 0.7em 1.4em;
+      border: none;
+      border-radius: 999px;
+      font-size: 1em;
+      cursor: pointer;
+      transition: background-color 0.3s;
+    }
+    #feedback button:hover {
+      background-color: #1b5e20;
+    }
+    /* 隊友卡片 */
     .teammate-card {
       background: white;
       border-radius: 10px;
@@ -16,6 +103,10 @@
       margin: 1em auto;
       max-width: 600px;
       box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+      transition: transform 0.2s;
+    }
+    .teammate-card:hover {
+      transform: scale(1.02);
     }
     .teammate-card h3 {
       margin-bottom: 0.5em;
@@ -30,129 +121,183 @@
       font-size: 1.1em;
       color: #666;
       max-width: 700px;
-      margin: 2em auto;
+      margin: 0 auto;
+    }
+    footer {
+      background-color: #f0f0f0;
+      text-align: center;
+      padding: 1em;
+      font-size: 0.9em;
+      color: #888;
+      margin-top: 3em;
     }
   </style>
 </head>
 <body>
 
-  <div id="teammate-list">讀取中...</div>
+<header>
+  <h1>PUBGM 好隊友推薦牆</h1>
+  <p>歡迎加入我們的隊伍，找到你的理想好隊友！</p>
+</header>
 
-  <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
-  <script>
-    function clean(value) {
-      if (!value) return "";
-      return value.toString().trim().replace(/^"+|"+$/g, "").replace(/\r?\n/g, " ").replace(/\s+/g, " ");
+<main>
+  <section id="social-links">
+    <h2>加入 LINE 社群</h2>
+    <a href="https://line.me/R/ti/g/你的LINE群組ID" target="_blank" rel="noopener" class="btn">點我加入 LINE 群組</a>
+  </section>
+
+  <section id="feedback">
+    <h2>推薦好隊友表單</h2>
+    <form id="recommendForm">
+      <label for="playerID">隊友ID或暱稱</label>
+      <input type="text" id="playerID" name="playerID" required />
+
+      <label for="role">擅長角色</label>
+      <input type="text" id="role" name="role" placeholder="例如：狙擊、突擊..." />
+
+      <label for="techType">技術評價</label>
+      <input type="text" id="techType" name="techType" placeholder="例如：技術型玩家" />
+
+      <label for="notes">備註</label>
+      <textarea id="notes" name="notes" rows="3"></textarea>
+
+      <button type="submit">提交推薦</button>
+    </form>
+  </section>
+
+  <section id="teammate-list">
+    <h2>推薦隊友列表</h2>
+    <p>讀取中...</p>
+  </section>
+</main>
+
+<footer>
+  &copy; 2025 PUBGM 好隊友推薦牆
+</footer>
+
+<script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
+<script>
+  function clean(value) {
+    if (!value) return "";
+    return value.toString().trim().replace(/^"+|"+$/g, "").replace(/\r?\n/g, " ").replace(/\s+/g, " ");
+  }
+
+  function findKey(obj, keyword) {
+    const keys = Object.keys(obj);
+    for (let key of keys) {
+      if (key.replace(/\s/g, '').includes(keyword.replace(/\s/g, ''))) {
+        return key;
+      }
+    }
+    return null;
+  }
+
+  function parseTimeText(str) {
+    if (!str) return [];
+    const raw = str.replace(/^"+|"+$/g, "").trim();
+    if (!raw) return [];
+
+    const allTimes = ["清晨", "上午", "中午", "下午", "晚上", "半夜"];
+    let parts = raw.split(/[,、\s]+/).filter(p => p && p !== "，");
+    const unique = [...new Set(parts)];
+
+    if (unique.includes("不玩")) return ["不玩"];
+    if (unique.includes("全天") || allTimes.every(t => unique.includes(t))) return ["全天"];
+    return unique;
+  }
+
+  function displayTeammates(data) {
+    const container = document.getElementById("teammate-list");
+    container.innerHTML = "<h2>推薦隊友列表</h2>";
+
+    if (!data || data.length === 0) {
+      container.innerHTML += "<p>目前沒有推薦的隊友。</p>";
+      return;
     }
 
-    function findKey(obj, keyword) {
-      const keys = Object.keys(obj);
-      for (let key of keys) {
-        if (key.replace(/\s/g, '').includes(keyword.replace(/\s/g, ''))) {
-          return key;
+    const weekDays = ["一", "二", "三", "四", "五", "六", "日"];
+
+    data.forEach(item => {
+      const idKey = findKey(item, "隊友ID") || findKey(item, "隊友 ID") || findKey(item, "ID");
+      const uidKey = findKey(item, "UID");
+
+      const idVal = idKey ? clean(item[idKey]) : "";
+      const uidVal = uidKey ? clean(item[uidKey]) : "";
+
+      const displayID = idVal && uidVal
+        ? `${idVal}（UID: ${uidVal}）`
+        : idVal
+          ? idVal
+          : uidVal
+            ? `UID: ${uidVal}`
+            : "未提供";
+
+      const roleKey = findKey(item, "擅長角色");
+      const techKey = findKey(item, "技術類型");
+      const noteKey = findKey(item, "備註") || findKey(item, "想補充");
+      const satisfactionKey = findKey(item, "滿意度");
+      const likeKey = findKey(item, "喜愛度");
+
+      const satisfaction = satisfactionKey ? Number(clean(item[satisfactionKey])) : 0;
+      const like = likeKey ? Number(clean(item[likeKey])) : 0;
+      let averageScore = null;
+      if (satisfaction > 0 || like > 0) {
+        averageScore = ((satisfaction + like) / 2).toFixed(2);
+      }
+
+      let timesText = "";
+      for (let i = 0; i < 7; i++) {
+        const dayKey = findKey(item, `星期${weekDays[i]}`);
+        const raw = dayKey ? clean(item[dayKey]) : "";
+        const parsed = parseTimeText(raw);
+
+        if (parsed.length === 1) {
+          timesText += `　${weekDays[i]}：${parsed[0]}<br>`;
+        } else if (parsed.length > 1) {
+          timesText += `　${weekDays[i]}：${parsed.join(", ")}<br>`;
+        } else {
+          timesText += `　${weekDays[i]}：無資料<br>`;
         }
       }
-      return null;
-    }
 
-    function parseTimeText(str) {
-      if (!str) return [];
-      const raw = str.replace(/^"+|"+$/g, "").trim();
-      if (!raw) return [];
-
-      const allTimes = ["清晨", "上午", "中午", "下午", "晚上", "半夜"];
-      let parts = raw.split(/[,、\s]+/).filter(p => p && p !== "，");
-      const unique = [...new Set(parts)];
-
-      if (unique.includes("不玩")) return ["不玩"];
-      if (unique.includes("全天") || allTimes.every(t => unique.includes(t))) return ["全天"];
-      return unique;
-    }
-
-    function displayTeammates(data) {
-      const container = document.getElementById("teammate-list");
-      container.innerHTML = "";
-
-      if (!data || data.length === 0) {
-        container.innerHTML = "<p>目前沒有推薦的隊友。</p>";
-        return;
-      }
-
-      const weekDays = ["一", "二", "三", "四", "五", "六", "日"];
-
-      data.forEach(item => {
-        const idKey = findKey(item, "隊友ID") || findKey(item, "隊友 ID") || findKey(item, "ID");
-        const uidKey = findKey(item, "UID");
-
-        const idVal = idKey ? clean(item[idKey]) : "";
-        const uidVal = uidKey ? clean(item[uidKey]) : "";
-
-        const displayID = idVal && uidVal
-          ? `${idVal}（UID: ${uidVal}）`
-          : idVal
-            ? idVal
-            : uidVal
-              ? `UID: ${uidVal}`
-              : "未提供";
-
-        const roleKey = findKey(item, "擅長角色");
-        const techKey = findKey(item, "技術類型");
-        const noteKey = findKey(item, "備註") || findKey(item, "想補充");
-        const satisfactionKey = findKey(item, "滿意度");
-        const likeKey = findKey(item, "喜愛度");
-
-        const satisfaction = satisfactionKey ? Number(clean(item[satisfactionKey])) : 0;
-        const like = likeKey ? Number(clean(item[likeKey])) : 0;
-        let averageScore = null;
-        if (satisfaction > 0 || like > 0) {
-          averageScore = ((satisfaction + like) / 2).toFixed(2);
-        }
-
-        let timesText = "";
-        for (let i = 0; i < 7; i++) {
-          const dayKey = findKey(item, `星期${weekDays[i]}`);
-          const raw = dayKey ? clean(item[dayKey]) : "";
-          const parsed = parseTimeText(raw);
-
-          if (parsed.length === 1) {
-            timesText += `　${weekDays[i]}：${parsed[0]}<br>`;
-          } else if (parsed.length > 1) {
-            timesText += `　${weekDays[i]}：${parsed.join(", ")}<br>`;
-          } else {
-            timesText += `　${weekDays[i]}：無資料<br>`;
-          }
-        }
-
-        const card = document.createElement("div");
-        card.className = "teammate-card";
-        card.innerHTML = `
-          <h3>🆔 ${displayID}</h3>
-          <p>🎯 擅長角色：${roleKey ? clean(item[roleKey]) : "無"}</p>
-          <p>📊 技術評價：${techKey ? clean(item[techKey]) : "無"}</p>
-          <p>🕐 出沒時間：<br>${timesText}</p>
-          <p>💬 備註：${noteKey ? clean(item[noteKey]) : "無"}</p>
-          <p>⭐ 滿意度：${satisfactionKey ? clean(item[satisfactionKey]) : "無"}</p>
-          <p>💖 喜愛度：${likeKey ? clean(item[likeKey]) : "無"}</p>
-          ${averageScore !== null ? `<p>🌟 綜合分：${averageScore}</p>` : ""}
-        `;
-        container.appendChild(card);
-      });
-    }
-
-    const csvUrl = "https://docs.google.com/spreadsheets/d/e/2PACX-1vR4C-YNnRgX3N71kURyPYn0K6Gt34uLFPm5DjiWzHf9DfKDzE3LIoEm2D8SqZoyrXycU4cIDK7qlgLd/pub?output=csv";
-
-    Papa.parse(csvUrl, {
-      download: true,
-      header: true,
-      complete: function(results) {
-        displayTeammates(results.data);
-      },
-      error: function(err) {
-        document.getElementById("teammate-list").innerHTML = "<p>讀取資料失敗，請稍後再試。</p>";
-        console.error(err);
-      }
+      const card = document.createElement("div");
+      card.className = "teammate-card";
+      card.innerHTML = `
+        <h3>🆔 ${displayID}</h3>
+        <p>🎯 擅長角色：${roleKey ? clean(item[roleKey]) : "無"}</p>
+        <p>📊 技術評價：${techKey ? clean(item[techKey]) : "無"}</p>
+        <p>🕐 出沒時間：<br>${timesText}</p>
+        <p>💬 備註：${noteKey ? clean(item[noteKey]) : "無"}</p>
+        <p>⭐ 滿意度：${satisfactionKey ? clean(item[satisfactionKey]) : "無"}</p>
+        <p>💖 喜愛度：${likeKey ? clean(item[likeKey]) : "無"}</p>
+        ${averageScore !== null ? `<p>🌟 綜合分：${averageScore}</p>` : ""}
+      `;
+      container.appendChild(card);
     });
-  </script>
+  }
+
+  const csvUrl = "https://docs.google.com/spreadsheets/d/e/2PACX-1vR4C-YNnRgX3N71kURyPYn0K6Gt34uLFPm5DjiWzHf9DfKDzE3LIoEm2D8SqZoyrXycU4cIDK7qlgLd/pub?output=csv";
+
+  Papa.parse(csvUrl, {
+    download: true,
+    header: true,
+    complete: function(results) {
+      displayTeammates(results.data);
+    },
+    error: function(err) {
+      const container = document.getElementById("teammate-list");
+      container.innerHTML = "<h2>推薦隊友列表</h2><p>讀取資料失敗，請稍後再試。</p>";
+      console.error(err);
+    }
+  });
+
+  // 簡單表單送出事件（目前只是示範，沒有真的送到後端）
+  document.getElementById("recommendForm").addEventListener("submit", function(e) {
+    e.preventDefault();
+    alert("感謝您的推薦！表單尚未串接後端，暫時無法送出。");
+    this.reset();
+  });
+</script>
 
 </body>
 </html>
