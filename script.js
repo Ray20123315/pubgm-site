@@ -1,10 +1,16 @@
 const sheetURL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vR4C-YNnRgX3N71kURyPYn0K6Gt34uLFPm5DjiWzHf9DfKDzE3LIoEm2D8SqZoyrXycU4cIDK7qlgLd/pub?output=csv";
 
+// 清理欄位值，去引號、去換行並去除頭尾空白
 function clean(value) {
   if (!value) return "";
-  return value.toString().trim().replace(/^"+|"+$/g, "").replace(/\n/g, " / ");
+  return value.toString()
+    .trim()
+    .replace(/^"+|"+$/g, "")
+    .replace(/\r?\n/g, " ")
+    .replace(/\s+/g, " ");
 }
 
+// 找欄位名，忽略空白，包含即可
 function findKey(obj, keyword) {
   const keys = Object.keys(obj);
   for (let key of keys) {
@@ -15,11 +21,23 @@ function findKey(obj, keyword) {
   return null;
 }
 
+// 把時間欄位文字，依逗號或空白分割成陣列，並去除重複與空字串
+function parseTimeText(str) {
+  if (!str) return [];
+  // 去除多餘引號、換行
+  let cleanStr = str.replace(/^"+|"+$/g, "").replace(/\r?\n/g, " ").trim();
+  // 逗號、空白、頓號分割
+  let parts = cleanStr.split(/[,、\s]+/);
+  // 過濾空字串及重複
+  let unique = [...new Set(parts.filter(s => s && s !== "不玩"))];
+  return unique;
+}
+
 function displayTeammates(data) {
   const container = document.getElementById("teammate-list");
   container.innerHTML = "";
 
-  if (data.length === 0) {
+  if (!data || data.length === 0) {
     container.innerHTML = "<p>目前沒有推薦的隊友。</p>";
     return;
   }
@@ -39,14 +57,16 @@ function displayTeammates(data) {
     const uid = uidKey ? clean(item[uidKey]) : "";
     const displayID = id ? id : `(UID: ${uid})`;
 
+    // 組出沒時間字串，每天拆分並顯示
     let timesText = "";
     for (let i = 0; i < 7; i++) {
       const dayKey1 = `平常遊玩時間(若當天不玩請填寫不玩) [星期${weekDays[i]}]`;
       const dayKey2 = findKey(item, `星期${weekDays[i]}`);
       const key = item.hasOwnProperty(dayKey1) ? dayKey1 : (dayKey2 || "");
-      const val = key ? clean(item[key]) : "";
-      if (val && !val.includes("不玩")) {
-        timesText += `　${weekDays[i]}：${val}<br>`;
+      const valRaw = key ? clean(item[key]) : "";
+      const times = parseTimeText(valRaw);
+      if (times.length > 0) {
+        timesText += `　${weekDays[i]}：${times.join(", ")}<br>`;
       }
     }
 
