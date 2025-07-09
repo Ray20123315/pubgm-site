@@ -3,74 +3,46 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>PUBGM 好友推薦及 LINE 社群</title>
+  <title>PUBGM 好友推薦及LINE社群</title>
   <style>
-    body {
-      font-family: "Noto Sans TC", "Microsoft JhengHei", sans-serif;
-      margin: 10px 15px;
-      background-color: #f9f9f9;
-      color: #333;
-    }
-    header, main, footer {
-      max-width: 720px;
-      margin: 0 auto 20px auto;
-    }
-    h1, h2 {
-      text-align: center;
-    }
+    body { font-family: Arial, sans-serif; max-width: 800px; margin: 20px auto; padding: 0 10px; }
+    header, main, footer { margin-bottom: 30px; }
+    h1, h2 { text-align: center; }
     .btn {
       display: inline-block;
-      background: #06c755;
+      padding: 10px 20px;
+      margin: 5px auto;
+      background-color: #00c300;
       color: white;
-      padding: 10px 16px;
-      margin: 8px auto;
-      border-radius: 6px;
       text-decoration: none;
+      border-radius: 6px;
       font-weight: bold;
-      font-size: 1.1em;
       cursor: pointer;
-      user-select: none;
-    }
-    .btn:hover {
-      background: #05a94f;
-    }
-    #social-links, #feedback {
       text-align: center;
-      margin: 15px 0;
     }
     #teammate-list {
-      margin-top: 15px;
+      margin-top: 10px;
     }
     .teammate-card {
-      background: white;
+      border: 1px solid #ddd;
       border-radius: 8px;
-      box-shadow: 0 0 6px rgba(0,0,0,0.1);
       padding: 12px 16px;
-      margin-bottom: 15px;
-      line-height: 1.5em;
+      margin-bottom: 12px;
+      background: #f9f9f9;
+    }
+    .teammate-card h3 {
+      margin: 0 0 6px 0;
     }
   </style>
-  <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
 </head>
 <body>
   <header>
-    <h1>🎯 PUBGM 好友推薦及 LINE 社群</h1>
-    <p style="text-align:center;">歡迎來到 PUBGM 好友推薦及 LINE 社群！聚集戰友、分享技巧。</p>
-
-    <section id="latest-news">
-      <h2>📢 最新消息</h2>
-      <p>目前開放測試版，歡迎朋友推薦隊友，一起上分！</p>
-    </section>
-
-    <section id="social-links">
-      <h2>加入我們的社群</h2>
-      <a href="https://line.me/ti/g2/3R7YozDVnTR4ln5XjtR7tlxcMnloRpnggGwEng?utm_source=invitation&utm_medium=link_copy&utm_campaign=default" target="_blank" class="btn line-btn">加入 LINE 社群</a>
-    </section>
-
-    <section id="feedback">
-      <h2>好友推薦</h2>
-      <a href="https://forms.gle/qtwE592qaeD4Girv6" target="_blank" class="btn feedback-btn">填寫建議表單</a>
-    </section>
+    <h1>🎯 PUBGM 好友推薦及LINE社群</h1>
+    <p style="text-align:center;">歡迎來到PUBGM好友推薦及LINE社群！聚集戰友、分享技巧。</p>
+    <div style="text-align:center;">
+      <a href="https://line.me/ti/g2/3R7YozDVnTR4ln5XjtR7tlxcMnloRpnggGwEng?utm_source=invitation&utm_medium=link_copy&utm_campaign=default" target="_blank" class="btn">加入 LINE 社群</a>
+      <a href="https://forms.gle/qtwE592qaeD4Girv6" target="_blank" class="btn">填寫推薦表單</a>
+    </div>
   </header>
 
   <main>
@@ -78,23 +50,48 @@
     <div id="teammate-list">載入中...</div>
   </main>
 
-  <footer>
-    <p style="text-align:center;">© 2025 PUBGM 好友推薦牆</p>
+  <footer style="text-align:center; color:#888;">
+    <p>© 2025 PUBGM 好友推薦牆</p>
   </footer>
+
+  <!-- 載入 PapaParse -->
+  <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
 
   <script>
     const sheetURL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vR4C-YNnRgX3N71kURyPYn0K6Gt34uLFPm5DjiWzHf9DfKDzE3LIoEm2D8SqZoyrXycU4cIDK7qlgLd/pub?output=csv";
 
     function clean(value) {
       if (!value) return "";
-      return value.toString().trim().replace(/^"+|"+$/g, "").replace(/\n/g, " / ");
+      return value.toString()
+        .trim()
+        .replace(/^"+|"+$/g, "")
+        .replace(/\r?\n/g, " ")
+        .replace(/\s+/g, " ");
+    }
+
+    function findKey(obj, keyword) {
+      const keys = Object.keys(obj);
+      for (let key of keys) {
+        if (key.replace(/\s/g, '').includes(keyword.replace(/\s/g, ''))) {
+          return key;
+        }
+      }
+      return null;
+    }
+
+    function parseTimeText(str) {
+      if (!str) return [];
+      let cleanStr = str.replace(/^"+|"+$/g, "").replace(/\r?\n/g, " ").trim();
+      let parts = cleanStr.split(/[,、\s]+/);
+      let unique = [...new Set(parts.filter(s => s && s !== "不玩"))];
+      return unique;
     }
 
     function displayTeammates(data) {
       const container = document.getElementById("teammate-list");
       container.innerHTML = "";
 
-      if (data.length === 0) {
+      if (!data || data.length === 0) {
         container.innerHTML = "<p>目前沒有推薦的隊友。</p>";
         return;
       }
@@ -102,16 +99,27 @@
       const weekDays = ["一", "二", "三", "四", "五", "六", "日"];
 
       data.forEach(item => {
-        const id = clean(item["隊友 ID"]);
-        const uid = clean(item["隊友UID"]);
+        const idKey = findKey(item, "隊友ID") || findKey(item, "隊友 ID");
+        const uidKey = findKey(item, "隊友UID") || findKey(item, "隊友 UID");
+        const roleKey = findKey(item, "擅長角色") || findKey(item, "擅長扮演角色");
+        const techKey = findKey(item, "技術類型") || findKey(item, "技術類型(自評)");
+        const noteKey = findKey(item, "想補充") || findKey(item, "備註");
+        const satisfactionKey = findKey(item, "滿意度");
+        const likeKey = findKey(item, "喜愛度");
+
+        const id = idKey ? clean(item[idKey]) : "";
+        const uid = uidKey ? clean(item[uidKey]) : "";
         const displayID = id ? id : `(UID: ${uid})`;
 
         let timesText = "";
         for (let i = 0; i < 7; i++) {
-          const key = `平常遊玩時間(若當天不玩請填寫不玩) [星期${weekDays[i]}]`;
-          const val = clean(item[key]);
-          if (val && !val.includes("不玩")) {
-            timesText += `　${weekDays[i]}：${val}<br>`;
+          const dayKey1 = `平常遊玩時間(若當天不玩請填寫不玩) [星期${weekDays[i]}]`;
+          const dayKey2 = findKey(item, `星期${weekDays[i]}`);
+          const key = item.hasOwnProperty(dayKey1) ? dayKey1 : (dayKey2 || "");
+          const valRaw = key ? clean(item[key]) : "";
+          const times = parseTimeText(valRaw);
+          if (times.length > 0) {
+            timesText += `　${weekDays[i]}：${times.join(", ")}<br>`;
           }
         }
 
@@ -119,12 +127,12 @@
         card.className = "teammate-card";
         card.innerHTML = `
           <h3>🆔 ${displayID}</h3>
-          <p>🎯 擅長角色：${clean(item["擅長扮演角色(擅長角色或定位)"])}</p>
-          <p>📊 技術評價：${clean(item["技術類型(自評)(請勿罵人)"])}</p>
+          <p>🎯 擅長角色：${roleKey ? clean(item[roleKey]) : "無"}</p>
+          <p>📊 技術評價：${techKey ? clean(item[techKey]) : "無"}</p>
           <p>🕐 出沒時間：<br>${timesText || "無資料"}</p>
-          <p>💬 備註：${clean(item["想補充的內容"]) || "無"}</p>
-          <p>⭐ 滿意度：${clean(item["滿意度"]) || "無"}</p>
-          <p>💖 喜愛度：${clean(item["喜愛度"]) || "無"}</p>
+          <p>💬 備註：${noteKey ? clean(item[noteKey]) : "無"}</p>
+          <p>⭐ 滿意度：${satisfactionKey ? clean(item[satisfactionKey]) : "無"}</p>
+          <p>💖 喜愛度：${likeKey ? clean(item[likeKey]) : "無"}</p>
         `;
         container.appendChild(card);
       });
