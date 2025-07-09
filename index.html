@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>PUBGM 戰友交流站</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #121212;
+      color: #ffffff;
+      margin: 0;
+      padding: 0 20px;
+    }
+    header, section {
+      margin: 40px 0;
+    }
+    h1, h2 {
+      color: #ffcc00;
+    }
+    a {
+      color: #00d8ff;
+      word-break: break-word;
+    }
+    .teammates {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+      gap: 1rem;
+    }
+    .player {
+      background: #1e1e1e;
+      padding: 1rem;
+      border-radius: 10px;
+      box-shadow: 0 0 10px #00000066;
+    }
+    iframe {
+      width: 100%;
+      height: 600px;
+      border: none;
+    }
+  </style>
+  <script>
+    async function loadTeammates() {
+      const res = await fetch("teammates.json");
+      const data = await res.json();
+      const container = document.querySelector(".teammates");
+      container.innerHTML = data.map(player => \`
+        <div class="player">
+          <h3>\${player.name}</h3>
+          <p>擅長：\${player.skill}</p>
+          <p>活躍時間：\${player.time}</p>
+          <p>技術等級：\${player.level}</p>
+        </div>
+      \`).join("");
+    }
+    window.onload = loadTeammates;
+  </script>
+</head>
+<body>
+  <header>
+    <h1>PUBGM 戰友交流站</h1>
+    <p>這是一個為 PUBG Mobile 玩家設計的交流網站，用來聯絡戰友、推薦隊友、以及接受大家的建議。</p>
+  </header>
+
+  <section>
+    <h2>加入 Line 社群</h2>
+    <p><a href="https://line.me/ti/g2/3R7YozDVnTR4ln5XjtR7tlxcMnloRpnggGwEng?utm_source=invitation&utm_medium=link_copy&utm_campaign=default" target="_blank">點我加入主群組</a></p>
+  </section>
+
+  <section>
+    <h2>推薦好隊友</h2>
+    <div class="teammates">
+      <p>載入中...</p>
+    </div>
+  </section>
+
+  <section>
+    <h2>網站建議與想法</h2>
+    <iframe src="https://docs.google.com/forms/d/e/1FAIpQLSezvM7A3a4GZVYLaOMsGFTZkzgyP6okm0Oq7B5pAfeKMxFQmw/viewform?embedded=true">載入中…</iframe>
+  </section>
+</body>
+</html>
