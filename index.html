@@ -71,61 +71,37 @@
     <p>© 2025 PUBGM 好友推薦牆</p>
   </footer>
 
-  <!-- PapaParse CDN，用於解析 CSV -->
   <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
   <script>
-    // 清理字串
     function clean(value) {
       if (!value) return "";
-      return value.toString()
-        .trim()
-        .replace(/^"+|"+$/g, "")
-        .replace(/\r?\n/g, " ")
-        .replace(/\s+/g, " ");
+      return value.toString().trim().replace(/^"+|"+$/g, "").replace(/\r?\n/g, " ").replace(/\s+/g, " ");
     }
 
-    // 找欄位key
     function findKey(obj, keyword) {
       const keys = Object.keys(obj);
       for (let key of keys) {
-        if (key.replace(/\s/g, '').includes(keyword.replace(/\s/g, ''))) {
-          return key;
-        }
+        if (key.replace(/\s/g, '').includes(keyword.replace(/\s/g, ''))) return key;
       }
       return null;
     }
 
-    // 解析時間，回傳字串陣列，已處理優先規則
     function parseTimeText(str) {
       if (!str) return [];
-
       let cleanStr = str.replace(/^"+|"+$/g, "").replace(/\r?\n/g, " ").trim();
       if (!cleanStr) return [];
-
       let parts = cleanStr.split(/[,、\s]+/);
-
-      // 有不玩就只顯示不玩
-      if (parts.includes("不玩")) {
-        return ["不玩"];
-      }
-
-      // 去重複且非空白
+      if (parts.includes("不玩")) return ["不玩"];
       let unique = [...new Set(parts.filter(s => s))];
-
       const allDaySet = new Set(["清晨","上午","中午","下午","晚上","半夜"]);
       const hasAllDayTimes = [...allDaySet].every(v => unique.includes(v));
-
-      if (hasAllDayTimes) {
-        return ["全天"];
-      }
-
+      if (hasAllDayTimes) return ["全天"];
       return unique;
     }
 
     function displayTeammates(data) {
       const container = document.getElementById("teammate-list");
       container.innerHTML = "";
-
       if (!data || data.length === 0) {
         container.innerHTML = "<p>目前沒有推薦的隊友。</p>";
         return;
@@ -136,15 +112,9 @@
       data.forEach(item => {
         const idKey = findKey(item, "隊友ID") || findKey(item, "隊友 ID");
         const uidKey = findKey(item, "隊友UID") || findKey(item, "隊友 UID");
-
         const idVal = idKey ? clean(item[idKey]) : "";
         const uidVal = uidKey ? clean(item[uidKey]) : "";
-
-        // 同時顯示ID和UID
-        const displayID = idVal && uidVal ? `${idVal} (UID: ${uidVal})` :
-                          idVal ? idVal :
-                          uidVal ? `(UID: ${uidVal})` : "無ID資料";
-
+        const displayID = idVal && uidVal ? `${idVal} (UID: ${uidVal})` : idVal || `(UID: ${uidVal})` || "無ID資料";
         const roleKey = findKey(item, "擅長角色") || findKey(item, "擅長扮演角色");
         const techKey = findKey(item, "技術類型") || findKey(item, "技術類型(自評)");
         const noteKey = findKey(item, "想補充") || findKey(item, "備註");
@@ -173,19 +143,18 @@
         const card = document.createElement("div");
         card.className = "teammate-card";
         card.innerHTML = `
-  <h3>🆔 ${displayID}</h3>
-  <div>🎯 擅長角色：${roleKey ? clean(item[roleKey]) : "無"}</div>
-  <div>📊 技術評價：${techKey ? clean(item[techKey]) : "無"}</div>
-  <div>🕐 出沒時間：<br>${timesText}</div>
-  <div>💬 備註：${noteKey ? clean(item[noteKey]) : "無"}</div>
-  <div>⭐ 滿意度：${satisfactionKey ? clean(item[satisfactionKey]) : "無"}</div>
-  <div>💖 喜愛度：${likeKey ? clean(item[likeKey]) : "無"}</div>
-`;
+          <h3>🆔 ${displayID}</h3>
+          <div>🎯 擅長角色：${roleKey ? clean(item[roleKey]) : "無"}</div>
+          <div>📊 技術評價：${techKey ? clean(item[techKey]) : "無"}</div>
+          <div>🕐 出滿時間：<br>${timesText}</div>
+          <div>💬 備註：${noteKey ? clean(item[noteKey]) : "無"}</div>
+          <div>⭐ 滿意度：${satisfactionKey ? clean(item[satisfactionKey]) : "無"}</div>
+          <div>💖 喜愛度：${likeKey ? clean(item[likeKey]) : "無"}</div>
+        `;
         container.appendChild(card);
       });
     }
 
-    // 讀取公開 CSV 並顯示
     const csvUrl = "https://docs.google.com/spreadsheets/d/e/2PACX-1vR4C-YNnRgX3N71kURyPYn0K6Gt34uLFPm5DjiWzHf9DfKDzE3LIoEm2D8SqZoyrXycU4cIDK7qlgLd/pub?output=csv";
 
     Papa.parse(csvUrl, {
