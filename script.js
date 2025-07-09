@@ -1,36 +1,3 @@
-// 輔助：清理字串
-function clean(value) {
-  if (!value) return "";
-  return value.toString().trim().replace(/^"+|"+$/g, "").replace(/\r?\n/g, " ").replace(/\s+/g, " ");
-}
-
-// 模糊比對欄位名
-function findKey(obj, keyword) {
-  const keys = Object.keys(obj);
-  for (let key of keys) {
-    if (key.replace(/\s/g, '').includes(keyword.replace(/\s/g, ''))) {
-      return key;
-    }
-  }
-  return null;
-}
-
-// 轉換時間格式
-function parseTimeText(str) {
-  if (!str) return [];
-  const raw = str.replace(/^"+|"+$/g, "").trim();
-  if (!raw) return [];
-
-  const allTimes = ["清晨", "上午", "中午", "下午", "晚上", "半夜"];
-  let parts = raw.split(/[,、\s]+/).filter(p => p && p !== "，");
-  const unique = [...new Set(parts)];
-
-  if (unique.includes("不玩")) return ["不玩"];
-  if (unique.includes("全天") || allTimes.every(t => unique.includes(t))) return ["全天"];
-  return unique;
-}
-
-// 顯示隊友資料
 function displayTeammates(data) {
   const container = document.getElementById("teammate-list");
   container.innerHTML = "";
@@ -63,16 +30,15 @@ function displayTeammates(data) {
     const satisfactionKey = findKey(item, "滿意度");
     const likeKey = findKey(item, "喜愛度");
 
-    // 計算綜合分
-    const satisfaction = satisfactionKey ? Number(clean(item[satisfactionKey])) : 0;
-    const like = likeKey ? Number(clean(item[likeKey])) : 0;
+    const satisfaction = satisfactionKey ? Number(clean(item[satisfactionKey])) : NaN;
+    const like = likeKey ? Number(clean(item[likeKey])) : NaN;
+    console.log("滿意度", satisfaction, "喜愛度", like);
     let averageScore = null;
-    if (satisfaction > 0 || like > 0) {
+    if (!isNaN(satisfaction) && !isNaN(like)) {
       averageScore = ((satisfaction + like) / 2).toFixed(2);
     }
 
     let timesText = "";
-
     for (let i = 0; i < 7; i++) {
       const dayKey = findKey(item, `星期${weekDays[i]}`);
       const raw = dayKey ? clean(item[dayKey]) : "";
@@ -102,18 +68,3 @@ function displayTeammates(data) {
     container.appendChild(card);
   });
 }
-
-// CSV 來源網址（改成你的試算表網址）
-const csvUrl = "https://docs.google.com/spreadsheets/d/e/2PACX-1vR4C-YNnRgX3N71kURyPYn0K6Gt34uLFPm5DjiWzHf9DfKDzE3LIoEm2D8SqZoyrXycU4cIDK7qlgLd/pub?output=csv";
-
-Papa.parse(csvUrl, {
-  download: true,
-  header: true,
-  complete: function (results) {
-    displayTeammates(results.data);
-  },
-  error: function (err) {
-    document.getElementById("teammate-list").innerHTML = "<p>讀取資料失敗，請稍後再試。</p>";
-    console.error(err);
-  }
-});
