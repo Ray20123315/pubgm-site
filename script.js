@@ -59,8 +59,8 @@ function displayTeammates(data) {
       <h3>🆔 ${displayID}</h3>
       <p>🎯 擅長角色：${roleKey ? clean(item[roleKey]) : "無"}</p>
       <p>📊 技術評價：${techKey ? clean(item[techKey]) : "無"}</p>
-      <p>🕐 出沒時間：<br>${timesText}</p>
-      <p>💬 備註：${noteKey ? clean(item[noteKey]) : "無"}</p>
+      <p>🕐 上線時間：<br>${timesText}</p>
+      <p>💬 補充內容：${noteKey ? clean(item[noteKey]) : "無"}</p>
       <p>⭐ 滿意度：${satisfactionKey ? clean(item[satisfactionKey]) : "無"}</p>
       <p>💖 喜愛度：${likeKey ? clean(item[likeKey]) : "無"}</p>
       ${averageScore !== null ? `<p>🌟 綜合分：${averageScore}</p>` : ""}
