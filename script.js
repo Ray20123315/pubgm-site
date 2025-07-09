@@ -1,14 +1,10 @@
-// 清理字串用
+// 輔助：清理字串
 function clean(value) {
   if (!value) return "";
-  return value.toString()
-    .trim()
-    .replace(/^"+|"+$/g, "")
-    .replace(/\r?\n/g, " ")
-    .replace(/\s+/g, " ");
+  return value.toString().trim().replace(/^"+|"+$/g, "").replace(/\r?\n/g, " ").replace(/\s+/g, " ");
 }
 
-// 根據欄位名模糊比對
+// 模糊比對欄位名
 function findKey(obj, keyword) {
   const keys = Object.keys(obj);
   for (let key of keys) {
@@ -19,7 +15,7 @@ function findKey(obj, keyword) {
   return null;
 }
 
-// 轉換時間格式，並且清晨-半夜全都有就當全天
+// 轉換時間格式
 function parseTimeText(str) {
   if (!str) return [];
   const raw = str.replace(/^"+|"+$/g, "").trim();
@@ -31,7 +27,6 @@ function parseTimeText(str) {
 
   if (unique.includes("不玩")) return ["不玩"];
   if (unique.includes("全天") || allTimes.every(t => unique.includes(t))) return ["全天"];
-
   return unique;
 }
 
@@ -48,12 +43,12 @@ function displayTeammates(data) {
   const weekDays = ["一", "二", "三", "四", "五", "六", "日"];
 
   data.forEach(item => {
-    const idKey = findKey(item, "隊友ID") || findKey(item, "隊友 ID");
+    const idKey = findKey(item, "隊友ID") || findKey(item, "隊友 ID") || findKey(item, "ID");
     const uidKey = findKey(item, "UID");
+
     const idVal = idKey ? clean(item[idKey]) : "";
     const uidVal = uidKey ? clean(item[uidKey]) : "";
 
-    // 顯示ID格式：有名字跟UID顯示完整，沒名字只顯示UID
     const displayID = idVal && uidVal
       ? `${idVal}（UID: ${uidVal}）`
       : idVal
@@ -68,27 +63,22 @@ function displayTeammates(data) {
     const satisfactionKey = findKey(item, "滿意度");
     const likeKey = findKey(item, "喜愛度");
 
-    // 讀取滿意度與喜愛度，轉數字
-    const satisfactionVal = satisfactionKey ? Number(clean(item[satisfactionKey])) : NaN;
-    const likeVal = likeKey ? Number(clean(item[likeKey])) : NaN;
-
-    // 計算綜合分（兩者皆為數字時才計算，否則顯示無）
-    let compositeScore = "無";
-    if (!isNaN(satisfactionVal) && !isNaN(likeVal)) {
-      compositeScore = ((satisfactionVal + likeVal) / 2).toFixed(2);
+    // 計算綜合分
+    const satisfaction = satisfactionKey ? Number(clean(item[satisfactionKey])) : 0;
+    const like = likeKey ? Number(clean(item[likeKey])) : 0;
+    let averageScore = null;
+    if (satisfaction > 0 || like > 0) {
+      averageScore = ((satisfaction + like) / 2).toFixed(2);
     }
 
-    // 組出出沒時間字串
     let timesText = "";
+
     for (let i = 0; i < 7; i++) {
       const dayKey = findKey(item, `星期${weekDays[i]}`);
       const raw = dayKey ? clean(item[dayKey]) : "";
       const parsed = parseTimeText(raw);
 
-      // 若有不玩就直接顯示不玩，忽略其他時間
-      if (parsed.includes("不玩")) {
-        timesText += `　${weekDays[i]}：不玩<br>`;
-      } else if (parsed.length === 1) {
+      if (parsed.length === 1) {
         timesText += `　${weekDays[i]}：${parsed[0]}<br>`;
       } else if (parsed.length > 1) {
         timesText += `　${weekDays[i]}：${parsed.join(", ")}<br>`;
@@ -107,16 +97,15 @@ function displayTeammates(data) {
       <p>💬 備註：${noteKey ? clean(item[noteKey]) : "無"}</p>
       <p>⭐ 滿意度：${satisfactionKey ? clean(item[satisfactionKey]) : "無"}</p>
       <p>💖 喜愛度：${likeKey ? clean(item[likeKey]) : "無"}</p>
-      <p>📈 綜合分：${compositeScore}</p>
+      ${averageScore !== null ? `<p>🌟 綜合分：${averageScore}</p>` : ""}
     `;
     container.appendChild(card);
   });
 }
 
-// 你的試算表 CSV 連結
+// CSV 來源網址（改成你的試算表網址）
 const csvUrl = "https://docs.google.com/spreadsheets/d/e/2PACX-1vR4C-YNnRgX3N71kURyPYn0K6Gt34uLFPm5DjiWzHf9DfKDzE3LIoEm2D8SqZoyrXycU4cIDK7qlgLd/pub?output=csv";
 
-// 用 PapaParse 下載並解析 CSV
 Papa.parse(csvUrl, {
   download: true,
   header: true,
