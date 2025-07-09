@@ -5,10 +5,8 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>PUBGM 好友推薦及 LINE 社群</title>
   <link rel="stylesheet" href="style.css" />
-  <!-- PapaParse CSV 解析器 -->
   <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
   <style>
-    /* 簡單示範 CSS 按鈕置中和卡片格式 */
     body {
       font-family: "Noto Sans TC", "Microsoft JhengHei", sans-serif;
       margin: 10px 15px;
@@ -90,7 +88,7 @@
 
     function clean(value) {
       if (!value) return "";
-      return value.replace(/^"+|"+$/g, "").replace(/\n/g, " / ").trim();
+      return value.toString().trim().replace(/^"+|"+$/g, "").replace(/\n/g, " / ");
     }
 
     function displayTeammates(data) {
@@ -105,6 +103,10 @@
       const weekDays = ["一", "二", "三", "四", "五", "六", "日"];
 
       data.forEach(item => {
+        const id = clean(item["隊友 ID"]);
+        const uid = clean(item["隊友UID"]);
+        const displayID = id ? id : `(UID: ${uid})`;
+
         let timesText = "";
         for (let i = 0; i < 7; i++) {
           const key = `平常遊玩時間(若當天不玩請填寫不玩) [星期${weekDays[i]}]`;
@@ -117,7 +119,7 @@
         const card = document.createElement("div");
         card.className = "teammate-card";
         card.innerHTML = `
-          <h3>🆔 ${clean(item["隊友 ID"])}（UID: ${clean(item["隊友UID"])})</h3>
+          <h3>🆔 ${displayID}</h3>
           <p>🎯 擅長角色：${clean(item["擅長扮演角色(擅長角色或定位)"])}</p>
           <p>📊 技術評價：${clean(item["技術類型(自評)(請勿罵人)"])}</p>
           <p>🕐 出沒時間：<br>${timesText || "無資料"}</p>
@@ -129,25 +131,30 @@
       });
     }
 
-    fetch(sheetURL)
-      .then(res => res.text())
-      .then(csvText => {
-        Papa.parse(csvText, {
-          header: true,
-          skipEmptyLines: true,
-          complete: function(results) {
-            displayTeammates(results.data);
-          },
-          error: function(err) {
-            console.error(err);
-            document.getElementById("teammate-list").innerHTML = "<p>資料解析錯誤，請稍後再試。</p>";
-          }
+    Papa.parse = window.Papa && window.Papa.parse;
+    if (!Papa.parse) {
+      document.getElementById("teammate-list").innerHTML = "<p>載入 PapaParse 失敗，請確認網路連線。</p>";
+    } else {
+      fetch(sheetURL)
+        .then(res => res.text())
+        .then(csvText => {
+          Papa.parse(csvText, {
+            header: true,
+            skipEmptyLines: true,
+            complete: function(results) {
+              displayTeammates(results.data);
+            },
+            error: function(err) {
+              console.error(err);
+              document.getElementById("teammate-list").innerHTML = "<p>資料解析錯誤，請稍後再試。</p>";
+            }
+          });
+        })
+        .catch(err => {
+          console.error(err);
+          document.getElementById("teammate-list").innerHTML = "<p>載入資料失敗，請稍後再試。</p>";
         });
-      })
-      .catch(err => {
-        console.error(err);
-        document.getElementById("teammate-list").innerHTML = "<p>載入資料失敗，請稍後再試。</p>";
-      });
+    }
   </script>
 </body>
 </html>
