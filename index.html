@@ -3,147 +3,36 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>PUBGM 好友推薦及 LINE 社群</title>
-  <style>
-    body {
-      font-family: "Noto Sans TC", "Microsoft JhengHei", sans-serif;
-      margin: 10px 15px;
-      background-color: #f9f9f9;
-      color: #333;
-    }
-    header, main, footer {
-      max-width: 720px;
-      margin: 0 auto 20px auto;
-    }
-    h1, h2 {
-      text-align: center;
-    }
-    .btn {
-      display: inline-block;
-      background: #06c755;
-      color: white;
-      padding: 10px 16px;
-      margin: 8px auto;
-      border-radius: 6px;
-      text-decoration: none;
-      font-weight: bold;
-      font-size: 1.1em;
-      cursor: pointer;
-      user-select: none;
-    }
-    .btn:hover {
-      background: #05a94f;
-    }
-    #social-links, #feedback {
-      text-align: center;
-      margin: 15px 0;
-    }
-    #teammate-list {
-      margin-top: 15px;
-    }
-    .teammate-card {
-      background: white;
-      border-radius: 8px;
-      box-shadow: 0 0 6px rgba(0,0,0,0.1);
-      padding: 12px 16px;
-      margin-bottom: 15px;
-      line-height: 1.5em;
-    }
-  </style>
-  <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
+  <title>PUBGM 好隊友推薦牆</title>
+  <link rel="stylesheet" href="style.css" />
 </head>
 <body>
   <header>
-    <h1>🎯 PUBGM 好友推薦及 LINE 社群</h1>
-    <p style="text-align:center;">歡迎來到 PUBGM 好友推薦及 LINE 社群！聚集戰友、分享技巧。</p>
-
+    <h1>🎯 PUBGM 好隊友推薦牆</h1>
+    <p>歡迎來到 PUBGM 好隊友推薦牆！聚集戰友、分享技巧、組隊不孤單。</p>
     <section id="latest-news">
       <h2>📢 最新消息</h2>
-      <p>目前開放測試版，歡迎朋友推薦隊友，一起上分！</p>
+      <p>目前開放公測版，歡迎朋友推薦隊友，一起上分！</p>
     </section>
-
     <section id="social-links">
       <h2>加入我們的社群</h2>
       <a href="https://line.me/ti/g2/3R7YozDVnTR4ln5XjtR7tlxcMnloRpnggGwEng?utm_source=invitation&utm_medium=link_copy&utm_campaign=default" target="_blank" class="btn line-btn">加入 LINE 社群</a>
     </section>
-
     <section id="feedback">
-      <h2>好友推薦</h2>
+      <h2>回報建議</h2>
       <a href="https://forms.gle/qtwE592qaeD4Girv6" target="_blank" class="btn feedback-btn">填寫建議表單</a>
     </section>
   </header>
 
   <main>
-    <h2>好友推薦牆</h2>
+    <h2>好隊友推薦牆</h2>
     <div id="teammate-list">載入中...</div>
   </main>
 
   <footer>
-    <p style="text-align:center;">© 2025 PUBGM 好友推薦牆</p>
+    <p>© 2025 PUBGM 好隊友推薦牆</p>
   </footer>
 
-  <script>
-    const sheetURL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vR4C-YNnRgX3N71kURyPYn0K6Gt34uLFPm5DjiWzHf9DfKDzE3LIoEm2D8SqZoyrXycU4cIDK7qlgLd/pub?output=csv";
-
-    function clean(value) {
-      if (!value) return "";
-      return value.toString().trim().replace(/^"+|"+$/g, "").replace(/\n/g, " / ");
-    }
-
-    function displayTeammates(data) {
-      const container = document.getElementById("teammate-list");
-      container.innerHTML = "";
-
-      if (data.length === 0) {
-        container.innerHTML = "<p>目前沒有推薦的隊友。</p>";
-        return;
-      }
-
-      const weekDays = ["一", "二", "三", "四", "五", "六", "日"];
-
-      data.forEach(item => {
-        const id = clean(item["隊友 ID"]);
-        const uid = clean(item["隊友UID"]);
-        const displayID = id ? id : `(UID: ${uid})`;
-
-        let timesText = "";
-        for (let i = 0; i < 7; i++) {
-          const key = `平常遊玩時間(若當天不玩請填寫不玩) [星期${weekDays[i]}]`;
-          const val = clean(item[key]);
-          if (val && !val.includes("不玩")) {
-            timesText += `　${weekDays[i]}：${val}<br>`;
-          }
-        }
-
-        const card = document.createElement("div");
-        card.className = "teammate-card";
-        card.innerHTML = `
-          <h3>🆔 ${displayID}</h3>
-          <p>🎯 擅長角色：${clean(item["擅長扮演角色(擅長角色或定位)"])}</p>
-          <p>📊 技術評價：${clean(item["技術類型(自評)(請勿罵人)"])}</p>
-          <p>🕐 出沒時間：<br>${timesText || "無資料"}</p>
-          <p>💬 備註：${clean(item["想補充的內容"]) || "無"}</p>
-          <p>⭐ 滿意度：${clean(item["滿意度"]) || "無"}</p>
-          <p>💖 喜愛度：${clean(item["喜愛度"]) || "無"}</p>
-        `;
-        container.appendChild(card);
-      });
-    }
-
-    Papa.parse(sheetURL, {
-      download: true,
-      header: true,
-      skipEmptyLines: true,
-      complete: function(results) {
-        console.log("欄位名稱:", Object.keys(results.data[0]));
-        console.log("第一筆資料:", results.data[0]);
-        displayTeammates(results.data);
-      },
-      error: function(err) {
-        console.error(err);
-        document.getElementById("teammate-list").innerHTML = "<p>資料解析錯誤，請稍後再試。</p>";
-      }
-    });
-  </script>
+  <script src="script.js"></script>
 </body>
 </html>
