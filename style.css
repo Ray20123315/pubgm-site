@@ -1,61 +1,116 @@
+/* 全站基本設定 */
 body {
-  font-family: "Noto Sans TC", sans-serif, sans-serif;
-  background: #f9f9f9;
-  color: #333;
+  font-family: "Microsoft JhengHei", "Helvetica Neue", sans-serif;
   margin: 0;
-  padding: 20px;
-  line-height: 1.6;
+  padding: 0;
+  background-color: #f6f6f6;
+  color: #333;
 }
-header, main, footer {
-  max-width: 700px;
-  margin: 0 auto 30px auto;
-  padding: 0 15px;
-}
-h1, h2 {
-  color: #444;
+
+/* 頁首區塊 */
+header {
+  background-color: #212121;
+  color: white;
+  padding: 2em 1em;
   text-align: center;
 }
-#latest-news, #social-links, #feedback {
-  background: white;
-  border-radius: 12px;
-  box-shadow: 0 2px 6px rgba(0,0,0,0.1);
-  padding: 15px;
-  margin-bottom: 20px;
+
+header h1 {
+  margin-bottom: 0.3em;
 }
+
+header p {
+  margin-top: 0;
+  font-size: 1.1em;
+}
+
+/* 區塊標題 */
+h2 {
+  text-align: center;
+  margin-top: 1.5em;
+  font-size: 1.4em;
+  color: #333;
+}
+
+/* 主內容區域 */
+main {
+  max-width: 1000px;
+  margin: 0 auto;
+  padding: 1em;
+}
+
+/* 最新消息、社群連結、推薦表單區塊 */
+#latest-news,
+#social-links,
+#feedback {
+  background-color: #fff;
+  padding: 1em;
+  margin: 1em auto;
+  max-width: 800px;
+  border-radius: 8px;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+  text-align: center;
+}
+
+/* 按鈕樣式 */
 .btn {
   display: inline-block;
-  background-color: #2ecc71;
+  margin: 0.5em auto;
+  padding: 0.6em 1.5em;
+  font-size: 1em;
   color: white;
-  padding: 10px 18px;
-  border-radius: 8px;
+  background-color: #2e7d32;
+  border: none;
+  border-radius: 999px;
   text-decoration: none;
-  font-weight: bold;
-  transition: background-color 0.3s ease;
-  margin-top: 10px;
-  text-align: center;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
 }
-.btn:hover { background-color: #27ae60; }
-.line-btn { background-color: #00c300; }
-.line-btn:hover { background-color: #008000; }
-.feedback-btn { background-color: #3498db; }
-.feedback-btn:hover { background-color: #2980b9; }
+
+.btn:hover {
+  background-color: #1b5e20;
+}
+
+/* 好友卡片樣式 */
 .teammate-card {
-  background: white;
-  border-radius: 12px;
+  background-color: #fff;
+  border-radius: 10px;
   box-shadow: 0 2px 6px rgba(0,0,0,0.1);
-  padding: 15px;
-  margin-bottom: 15px;
+  padding: 1em 1.2em;
+  margin: 1em auto;
+  max-width: 600px;
+  transition: transform 0.2s;
 }
+
+.teammate-card:hover {
+  transform: scale(1.02);
+}
+
+/* 卡片內文字排版 */
 .teammate-card h3 {
-  margin-top: 0;
-  font-size: 20px;
+  margin: 0 0 0.5em;
+  font-size: 1.2em;
 }
+
 .teammate-card p {
-  margin: 5px 0;
-  white-space: pre-wrap;
+  margin: 0.25em 0;
+  line-height: 1.5;
+  white-space: normal;
 }
-footer {
+
+/* 載入文字樣式 */
+#teammate-list {
   text-align: center;
-  color: #777;
-  font-size: 14px;
+  font-size: 1.1em;
+  color: #666;
+}
+
+/* 頁尾樣式 */
+footer {
+  background-color: #f0f0f0;
+  text-align: center;
+  padding: 1em;
+  font-size: 0.9em;
+  color: #888;
+  margin-top: 3em;
 }
